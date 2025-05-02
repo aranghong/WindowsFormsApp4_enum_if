@@ -1,116 +1,94 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace WindowsFormsApp4_enum_if
 {
     public partial class Form1 : Form
     {
-        enum RPS { Scissors = 0, Rock = 1, Paper = 2 }
+        enum Choice { Scissors = 0, Rock = 1, Paper = 2 }
 
-        int user = -1;
-        int computer = -1;
         int userScore = 0;
-        int comScore = 0;
+        int computerScore = 0;
+        Random rand = new Random();
 
         public Form1()
         {
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e) => PlayRound(Choice.Scissors); // 가위
+        private void button2_Click(object sender, EventArgs e) => PlayRound(Choice.Rock);     // 바위
+        private void button3_Click(object sender, EventArgs e) => PlayRound(Choice.Paper);    // 보
+
+        private void PlayRound(Choice userChoice)
         {
-            user = (int)RPS.Scissors;
-            textBox3.Text = "";
-            textBox3.Text += "사용자: 가위\r\n";
-            game(user);
-        }
+            Choice computerChoice = (Choice)rand.Next(0, 3);
 
-        private void button2_Click(object sender, EventArgs e)
-        {
-            user = (int)RPS.Rock;
-            textBox3.Text = "";
-            textBox3.Text += "사용자: 바위\r\n";
-            game(user);
-        }
+            textBox3.Text = $"사용자: {GetKoreanName(userChoice)}\r\n컴퓨터: {GetKoreanName(computerChoice)}\r\n";
 
-        private void button3_Click(object sender, EventArgs e)
-        {
-            user = (int)RPS.Paper;
-            textBox3.Text = "";
-            textBox3.Text += "사용자: 보\r\n";
-            game(user);
-        }
+            int result = Compare(userChoice, computerChoice);
 
-        void game(int choice)
-        {
-            Random r = new Random();
-            computer = r.Next(0, 3);
-
-            if (check() == 1) return;
-
-            ShowComputerChoice();
-
-            int result = Judge((RPS)user, (RPS)computer);
             if (result == 1)
             {
                 userScore++;
             }
             else if (result == -1)
             {
-                comScore++;
+                computerScore++;
             }
 
-            PrintScores();
+            UpdateScores();
+
+            if (userScore >= 3 || computerScore >= 3)
+            {
+                string winner = userScore >= 3 ? "사용자 승리 🎉" : "컴퓨터 승리 🤖";
+                textBox3.Text += $"\r\n{winner}\r\n점수를 초기화합니다.";
+
+
+                ResetScores();
+            }
         }
 
-        int Judge(RPS user, RPS computer)
+        private void UpdateScores()
+        {
+            textBox1.Text += $"사용자 점수: {userScore} \r\n";
+            textBox2.Text += $"컴퓨터 점수: {computerScore} \r\n";
+        }
+
+        private void ResetScores()
+        {
+            userScore = 0;
+            computerScore = 0;
+
+            textBox1.Text = "";
+            textBox2.Text = "";
+            textBox3.Text = "";
+        }
+
+        private int Compare(Choice user, Choice computer)
         {
             if (user == computer) return 0;
 
-            if ((user == RPS.Scissors && computer == RPS.Paper) ||
-                (user == RPS.Rock && computer == RPS.Scissors) ||
-                (user == RPS.Paper && computer == RPS.Rock))
+            return (user == Choice.Scissors && computer == Choice.Paper) ||
+                   (user == Choice.Rock && computer == Choice.Scissors) ||
+                   (user == Choice.Paper && computer == Choice.Rock) ? 1 : -1;
+        }
+
+        private string GetKoreanName(Choice choice)
+        {
+            switch (choice)
             {
-                return 1; // 사용자 승
+                case Choice.Scissors: return "가위";
+                case Choice.Rock: return "바위";
+                case Choice.Paper: return "보";
+                default: return "?";
             }
-
-            return -1; // 컴퓨터 승
-        }
-
-        void ShowComputerChoice()
-        {
-            string comStr = computer switch
-            {
-                (int)RPS.Scissors => "가위",
-                (int)RPS.Rock => "바위",
-                (int)RPS.Paper => "보",
-                _ => "?"
-            };
-            textBox3.Text += $"컴퓨터: {comStr}\r\n";
-        }
-
-        void PrintScores()
-        {
-            textBox1.Text = $"사용자 점수: {userScore}\r\n";
-            textBox2.Text = $"컴퓨터 점수: {comScore}\r\n";
-        }
-
-        int check()
-        {
-            if (userScore >= 3 || comScore >= 3)
-            {
-                textBox1.Text = "";
-                textBox2.Text = "";
-                textBox3.Text = "3점 달성!\r\n점수 초기화됩니다.";
-
-                userScore = 0;
-                comScore = 0;
-                return 1;
-            }
-            return 0;
         }
 
         private void textBox2_TextChanged(object sender, EventArgs e) { }
         private void textBox1_TextChanged(object sender, EventArgs e) { }
+
     }
 }
